@@ -1,10 +1,30 @@
 import React from 'react'
-import { View, StyleSheet, StatusBar, FlatList,Image,TouchableOpacity } from 'react-native';
+import { View, StyleSheet, StatusBar, FlatList,Image,TouchableOpacity,Linking } from 'react-native';
 import logo from '../assets/logo.png'
 import { Container,Text, Input, Content, Card, CardItem, Thumbnail, Left, Body, Textarea,Form, Item, Label } from 'native-base';
 import IconF from 'react-native-vector-icons/FontAwesome';
+import newsAction from '../redux/actions/news';
+import {useDispatch, useSelector} from 'react-redux';
+import profile from '../assets/profile.png';
+import {API_URL} from '@env';
+import moment from 'moment';
 
-const DetailNews = ({item, navigation}) => {
+const DetailNews = ({route}) => {
+  console.log("route",route);
+  const dispatch = useDispatch()
+  const {token} = useSelector(state => state.auth)
+  const id = route.params
+  const {detailNews} = useSelector(state => state.news)
+  // console.log("detail",Detail);
+
+  const {title,description,author,createdAt,updatedAt,reference} = detailNews
+  // const {userName, picture} = detailNews.Author
+
+  React.useEffect(() => {
+    dispatch(newsAction.getDetail(token,id))
+  }, [dispatch])
+  // console.log(Detail,id)
+  let time = moment(createdAt).format('LLLL');
     return (
         <>
         <StatusBar backgroundColor='#1c4585' barStyle="light-content"/>
@@ -13,61 +33,40 @@ const DetailNews = ({item, navigation}) => {
         <Content>
           <Card style={{width:340}}>
           <CardItem>
-                <Text style={styles.txt}>Add the latest news</Text>
+    <Text style={styles.txt}>{title}</Text>
             </CardItem>
             <CardItem>
               <Left>
-                <Thumbnail source={logo} />
+              {/* <Thumbnail source={picture !== null ? {uri: API_URL + picture} : profile} /> */}
                 <Body>
-                  <Text>MNC</Text>
-                 <Text note>April 15, 2016</Text>
+                  <Text>Article by {author}</Text>
+                 <Text note>{time}</Text>
                 </Body>
               </Left>
             </CardItem>
                 <View style={styles.baseImg}>
-              {/* <Image source={logo} style={styles.img} /> */}
-              <IconF  name="picture-o"  color="gray" size={200}  />
+              <Image source={detailNews.picture !== null ? {uri: API_URL + detailNews.picture} : profile}  style={styles.img} style={styles.img} />
+              
 
                 </View>
-            <View style={styles.baseCmr}>
-                <TouchableOpacity style={styles.cmr}>
-                <IconF name="picture-o" size={30} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cmr}>
-                  <IconF name="camera" size={30} color="#fff" />
-                </TouchableOpacity>
-              </View>
+           
             <Content padder>
-          <Form>
-              <Label style={styles.title}>Title</Label>
-          <Item regular rounded>
-              <Input style={styles.input} placeholder="please enter your news title"/>
-            </Item>
-          </Form>
+          
         </Content>
           <Content padder>
           <Form>  
            <Label style={styles.title}>Description</Label>
-            <Textarea style={styles.input} rowSpan={8} bordered placeholder="please enter your news  description" />
+            <Text style={styles.desc}>{description}</Text>
+            
+          </Form>
+          <Form>  
+           <Label style={styles.title}>Reference</Label>
+            <Text style={styles.link} onPress={() => Linking.openURL(reference)}>{reference}</Text>
             
           </Form>
           
         </Content>
-        <Content padder>
-        <Form>
-              <Label style={styles.title}>Reference</Label>
-          <Item regular rounded>
-              <Input style={styles.input} placeholder="please enter your news reference" />
-            </Item>
-          </Form>
-        </Content>
-        <Content>
-            <View style={styles.base}>
-                <TouchableOpacity style={styles.btn}>
-                    <Text style={styles.btnTxt}>Save</Text>
-                </TouchableOpacity>
-            </View>
-        </Content>
+        
         
         
           </Card>
@@ -83,6 +82,16 @@ const styles = StyleSheet.create({
         justifyContent:'center',
         alignItems:'center',
     },
+    desc:{
+      fontSize:15,
+      color:'gray',
+      textAlign:'justify'
+    },
+    link:{
+      fontSize:15,
+      color:'blue',
+      textAlign:'left'
+    },
     txt:{
         fontSize:25,
         fontWeight:'bold',
@@ -94,6 +103,9 @@ const styles = StyleSheet.create({
     title:{
         marginLeft:20,
         marginBottom:10,
+        fontSize:18,
+        fontWeight:'bold',
+        color:'#1c4585',
     },
     base:{
         justifyContent:'center',
@@ -130,16 +142,19 @@ const styles = StyleSheet.create({
       },
       img:{
         flex: 1,
-          height:300,
-          width:300,
+      height:300,
+      width:320,
+      
           
       },
       baseImg:{
-          justifyContent:'center',
-          alignItems:'center',
-          borderWidth:2,
-          margin:10,
-          borderColor:'gray'
+        justifyContent:'center',
+        alignItems:'center',
+        margin:10,
+        shadowOffset: {width: 0, height: 0},
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      elevation:6,
       }
 
 })

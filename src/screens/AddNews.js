@@ -15,15 +15,7 @@ const AddNews = ({item, navigation}) => {
           <CardItem>
                 <Text style={styles.txt}>Add the latest news</Text>
             </CardItem>
-            <CardItem>
-              <Left>
-                <Thumbnail source={logo} />
-                <Body>
-                  <Text>MNC</Text>
-                 <Text note>April 15, 2016</Text>
-                </Body>
-              </Left>
-            </CardItem>
+            
                 <View style={styles.baseImg}>
               {/* <Image source={logo} style={styles.img} /> */}
               <IconF  name="picture-o"  color="gray" size={200}  />

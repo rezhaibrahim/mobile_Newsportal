@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {createStackNavigator} from '@react-navigation/stack';
-import {Splash, Signin, Home, Signup,Search,Profile,AddNews,EditNews} from '../screens';
+import {Splash, Signin, Home, Signup,Search,Profile,AddNews,EditNews,DetailNews,ListNewsUser} from '../screens';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Feather';
@@ -116,6 +116,42 @@ export default function StackScreen () {
         }}
         name="EditNews"
         component={EditNews}/>
+        <Stack.Screen options={{
+          title: 'NewsPortal',
+          headerStyle: {
+            backgroundColor: '#1c4585',
+            height:70,
+            borderBottomWidth: 0,
+            shadowOffset: { height: 0, width: 0 },
+            shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation:0,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+        name="DetailNews"
+        component={DetailNews}/>
+        <Stack.Screen options={{
+          title: 'NewsPortal',
+          headerStyle: {
+            backgroundColor: '#1c4585',
+            height:70,
+            borderBottomWidth: 0,
+            shadowOffset: { height: 0, width: 0 },
+            shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation:0,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+        name="ListNewsUser"
+        component={ListNewsUser}/>
     </Stack.Navigator>
     )}
     </NavigationContainer>

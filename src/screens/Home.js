@@ -1,9 +1,15 @@
-import React from 'react';
+import React,{useEffect,useState} from 'react';
 import { View,  StyleSheet, StatusBar, FlatList,Image } from 'react-native';
 import logo from '../assets/logo.png'
 import { Container,Text, Input, Content, Card, CardItem, Thumbnail, Item, Left, Body, Right } from 'native-base';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import newsAction from '../redux/actions/news';
+import {useDispatch, useSelector} from 'react-redux';
+import profile from '../assets/profile.png';
+import {API_URL} from '@env';
+import moment from 'moment';
+
 const DATA = [
   {
     id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
@@ -23,6 +29,15 @@ const DATA = [
 ];
 
 const RenderItem = ({item, navigation}) => {
+        // console.log("cek",item.item);
+        const {id,title,description,createdAt} = item.item
+        const {userName,picture} = item.item.Author
+        
+        let time = moment(createdAt).format('LLLL');
+        const toDetail = () => {
+          navigation.navigate('DetailNews',id);
+          console.log("item id",id);
+        };
         
       return(
         
@@ -32,30 +47,26 @@ const RenderItem = ({item, navigation}) => {
           <Card style={{width:340}}>
             <CardItem>
               <Left>
-                <Thumbnail source={logo} />
+              
+                <Thumbnail source={picture !== null ? {uri: API_URL + picture} : profile} />
                 <Body>
-                  <Text>MNC</Text>
-                 <Text note>April 15, 2016</Text>
+                  <Text style={style.username}>{userName}</Text>
+                    <Text note>{time}</Text>
                 </Body>
               </Left>
             </CardItem>
             <View style={styles.baseImg}>
-              {/* <Image source={logo} style={styles.img} /> */}
-              <Icon name="picture-o"  color="gray" size={200}  />
+              <Image source={item.item.picture !== null ? {uri: API_URL + item.item.picture} : profile}  style={styles.img} />
 
                 </View>
             <CardItem>
-              <Left>
-            <TouchableOpacity >
-                  <Text>JUDUL</Text>
+            <TouchableOpacity onPress={() => toDetail()} >
+                  <Text style={style.title}>{title}</Text>
               </TouchableOpacity>
-              </Left>
-              <Right>
-                <Text>11h ago</Text>
-              </Right>
+              
             </CardItem>
             <CardItem>
-             <Text>lorEu ea officia proident nulla amet deserunt elit irure cupidatat occaecat nulla. Pariatur velit reprehenderit dolore nulla officia tempor dolor aliquip aliqua. Tempor ullamco reprehenderit velit amet esse sint amet consequat qui exercitation ad. Aute veniam do culpa nostrud proident eiusmod minim pariatur occaecat Lorem magna qui. Aliquip duis sint deserunt pariatur ullamco tempor magna incididunt. Enim proident nostrud nisi veniam id ex excepteur aliqua tempor aliqua fugiat do. Magna elit cupidatat laborum minim consectetur.</Text>
+             <Text numberOfLines={3} ellipsizeMode="tail" style={style.desc}>{description}</Text>
             </CardItem>
           </Card>
           </Content>
@@ -64,21 +75,104 @@ const RenderItem = ({item, navigation}) => {
           
       )
 }
+const style = StyleSheet.create({
+  title:{
+    fontSize:20,
+    fontWeight:'bold',
+    color:"#1c4585",
+    borderBottomColor: '#d6d6d6',
+    borderBottomWidth: 2,
+    
+  },
+  desc:{
+    fontSize:15,
+    color:'gray'
+  },
+  hr:{
+    borderBottomColor: '#d6d6d6',
+    borderBottomWidth: 2,
+    width: 50,
+  },
+  username:{
+    color:"#1c4585",
+    fontSize:18,
+    fontWeight:'bold',
+  }
+})
 
 const HomeScreen = ({navigation}) => {
+      const dispatch = useDispatch();
+      const {token} = useSelector(state => state.auth)
+      const News = useSelector(state => state.news.allNews)
+      const Page = useSelector(state => state.news)
+      console.log(Page);
+      // const search = useSelector(state => state.news.resultSearch)
+      // console.log(seac);
+      const [search, setSearch] = useState('');
+      const [data, setData] = useState([]);
+      const [refresh, setRefresh] = useState(false)
+      // console.log(Value);
+      //   const searching = () => {
+      //     if(Value.length > 0){
+      //       setValue('');
+      //         dispatch(newsAction.getAllNews(token, Value))
+      //       }
+      // }
 
-    return (<>
+      useEffect(() => {
+        dispatch(newsAction.getAllNews(token,search))
+      }, [dispatch,search])
+
+      useEffect(() => {
+       if (News.length > 0) {
+         if (Page.allNewPageInfo.currentPage === 1) {
+           setData(News)
+         } else{
+           setData(data.concat(News))
+         }
+       }
+      }, [Page.allNewPageInfo.currentPage,News.length])
+
+      useEffect(() => {
+        if (refresh) {
+          setData(News);
+          setRefresh(false);
+        }
+      }, [News]);
+
+      const loadMore = () => {
+        if (Page.allNewPageInfo.nextLink) {
+          dispatch(
+            newsAction.getAllNews(search, Page.allNewPageInfo.currentPage + 1),
+          );
+        }
+      }
+    
+      const doRefresh =() => {
+        setRefresh(true);
+        dispatch(newsAction.getAllNews(''));
+      }
+
+    return (
+    <>
         <StatusBar backgroundColor='#1c4585' barStyle="light-content"/>
         <Item rounded style={styles.search}>
         <Icon name="globe" size={25} color="gray" />
-            <Input  placeholder="Search" />
+            <Input  
+            placeholder="Search" 
+            onChangeText={(text) => setSearch(text)}
+            />
             <Icon  name="search" size={25} color="gray" />
           </Item>
       <View style={styles.container}>
         <FlatList 
-          data={DATA}
-          renderItem={(item)=>( <RenderItem item={item} />)}
+          data={data}
+          renderItem={(item)=>( <RenderItem item={item} navigation={navigation} />)}
           keyExtractor={(item) => item.id}
+          onEndReached={async () => await loadMore()}
+          onEndReachedThreshold={0.2}
+          onRefresh={doRefresh}
+          refreshing={refresh}
         />
       </View>
       </>
@@ -96,6 +190,10 @@ const styles = StyleSheet.create({
   card:{
     flex:1,
     flexDirection:'column',
+    shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation:6,
   },
   search:{
     paddingLeft:30,
@@ -105,15 +203,17 @@ const styles = StyleSheet.create({
   img:{
     flex: 1,
       height:300,
-      width:300,
+      width:320,
       
   },
   baseImg:{
       justifyContent:'center',
       alignItems:'center',
-      borderWidth:2,
       margin:10,
-      borderColor:'gray'
+      shadowOffset: {width: 0, height: 0},
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation:6,
   }
   
 });

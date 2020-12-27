@@ -54,16 +54,8 @@ const RenderItem = ({item, navigation}) => {
     <>
     <View style={styles.card}>
          <Content scrollEnabled={false}>
-          <SwipeRow
-            leftOpenValue={75}
-            rightOpenValue={-75}
-            left={
-              <Button success onPress={() => navigation.navigate('EditNews')}>
-                <Icon active name="pencil" />
-              </Button>
-            }
-            body={
-                <Card style={{justifyContent:'center',alignItems:'center',width:350, height: 70}}>
+         
+                <Card style={{justifyContent:'center',alignItems:'center',width:350, height: 90}}>
                 <CardItem>
                   <Left>
                     <Thumbnail source={picture === null ? profile: {uri: API_URL + picture}} />
@@ -76,13 +68,6 @@ const RenderItem = ({item, navigation}) => {
                   </Left>
                 </CardItem>
               </Card>
-            }
-            right={
-              <Button danger onPress={() => alert('Trash')}>
-                <Icon active name="trash" />
-              </Button>
-            }
-          />
         </Content>
       
     </View>
@@ -91,34 +76,27 @@ const RenderItem = ({item, navigation}) => {
   );
 };
 
-export default function Profile({navigation}) {
+export default function Profile({route,navigation}) {
+  console.log("ini route",route);
   const OpenBottomSheet = React.useRef();
   const OpenBottomSheetNews = React.useRef();
-
+  const id = route.params
   const dispatch = useDispatch()
   const {token} = useSelector(state => state.auth)
-  const myNews = useSelector(state => state.news.myNews)
-  const pageInfo = useSelector(state => state.news.myNewPageInfo)
-  const myProfile = useSelector(state => state.user.myProfile)
-  console.log(myProfile);
+  const myNews = useSelector(state => state.news.listNews)
+  const pageInfo = useSelector(state => state.news.listPageInfo)
+  console.log(myNews);
+  
 
-  const {userName,picture} = myProfile
+  // const {userName,picture} = myNews.Author
 
-  const isEdit = () => {
-    OpenBottomSheet.current.open();
-  };
-  const isEditNews = () => {
-    OpenBottomSheetNews.current.open();
-  };
+
   useEffect(() => {
-    dispatch(userAction.myProfile(token))
-    dispatch(newsAction.getMyNews(token))
+    dispatch(newsAction.getListNews(token,id))
   }, [dispatch])
   
   
-  const isSignOut = () => {
-    dispatch(authAction.logout());
-  };
+
   return (
     <>
     <StatusBar backgroundColor='#1c4585' barStyle="light-content"/>
@@ -126,10 +104,10 @@ export default function Profile({navigation}) {
         <Card style={styles.baseCard}>
           <CardItem style={styles.baseProfile}>
             <Left>
-              <Image style={styles.img} source={picture === null ? profile: {uri: API_URL + picture}} />
-              <Body>
-  <Text style={styles.username}>{userName}</Text>
-                <Text style={styles.note} note>Creator</Text>
+              {/* <Image style={styles.img} source={picture === null ? profile: {uri: API_URL + picture}} /> */}
+              <Body style={{justifyContent:'center',
+                alignItems:'center',}}>
+  <Text style={styles.username}>List articles user</Text>
             <View style={styles.hr} />
             <View style={styles.baseArticles}>
 
@@ -139,18 +117,7 @@ export default function Profile({navigation}) {
             </View>
            
             </View>
-            <View style={styles.edit}>
-                <TouchableOpacity  onPress={() => isEdit()}>
-                <IconF name='pencil' color='#fff' />
-                </TouchableOpacity>
-                
-            </View>
-            <View style={styles.power}>
-                <TouchableOpacity  onPress={() => isSignOut()}>
-                <IconF name='power-off' color='#fff' />
-                </TouchableOpacity>
-                
-            </View>
+          
             
             
               </Body>
@@ -162,80 +129,19 @@ export default function Profile({navigation}) {
           
         </Card>
 
-        <View style={{marginTop:100,position:'relative'}}>
-                <FlatList
-
-      data={myNews}
-      renderItem={(item)=>( <RenderItem item={item} navigation={navigation} />)}
-      keyExtractor={(item) => item.id}
-    />
+        <View style={{marginTop:120,position:'relative'}}>
+               
             </View>
-            
+            <FlatList
+
+data={myNews}
+renderItem={(item)=>( <RenderItem item={item} navigation={navigation} />)}
+keyExtractor={(item) => item.id}
+/>
       </View>
     
 
-      <BottomSheet
-        ref={OpenBottomSheet}
-        closeOnDragDown={true}
-        closeOnPressMask
-        customStyles={{
-          wrapper: {
-            backgroundColor: 'rgba(52, 52, 52, 0.8)',
-          },
-          draggableIcon: {
-            backgroundColor: 'gray',
-          },
-          container: {
-            borderTopRightRadius: 10,
-            borderTopLeftRadius: 10,
-            elevation: 2,
-          },
-        }}
-        height={600}>
-        <Formik 
-        >
-          {() => (
-            <>
-            <View style={styles.baseTitleBtm}>
-            <Text style={styles.titleBtm}>Change your Profile</Text>
-          </View>
-            <View style={styles.parentBtm}>
-              
-              <View>
-              <Image style={styles.picture}  source={logo} />
-              </View>
-              <View style={styles.baseCmr}>
-                <TouchableOpacity style={styles.cmr}>
-                <IconF name="picture-o" size={30} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cmr}>
-                  <IconF name="camera" size={30} color="#fff" />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.baseUser}>
-              <Form>
-                <Item floatingLabel>
-                <Label>Username</Label>
-                <Input placeholder='username' />
-                </Item>
-              </Form>
-              </View>
-              <View style={styles.baseCmr}>
-                <TouchableOpacity style={styles.btnEdit}>
-                <Text style={styles.tbtn}>Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.btnCancel}>
-                  <Text style={styles.tbtn}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-              
-              
-              
-            </View>
-            </>
-          )}
-        </Formik>
-      </BottomSheet>
+      
 
       
 
@@ -285,7 +191,8 @@ const styles = StyleSheet.create({
       marginTop:0,
       backgroundColor:'#1c4585',
       borderTopWidth: 0,
-      shadowColor: 'transparent'
+      shadowColor: 'transparent',
+      
     },
     hr:{
         borderBottomColor: '#d6d6d6',
